@@ -6,6 +6,7 @@ const AlumnoTable = () => {
   const [alumnos, setAlumnos] = useState([]);
   const [selectedIdBanner, setSelectedIdBanner] = useState('');
   const [notas, setNotas] = useState([]);
+  const [notasFinales, setNotasFinales] = useState(null); // Nuevo estado para almacenar las notas finales
 
   useEffect(() => {
     const fetchAlumnos = async () => {
@@ -22,47 +23,50 @@ const AlumnoTable = () => {
 
   const handleAlumnoSelect = async (idBanner) => {
     try {
-      const response = await axios.get(`/nota/notas/${idBanner}`);
-      setNotas(response.data);
+      const responseNotas = await axios.get(`/nota/notas/${idBanner}`);
+      const responseNotasFinales = await axios.get(`/nota/obtenernotas/${idBanner}`);
+
+      const notasDelAlumno = responseNotas.data.informacionNotas; // ajusta la propiedad según la estructura real de la respuesta
+      const notasFinalesDelAlumno = responseNotasFinales.data;
+
+      setNotas(notasDelAlumno);
+      setNotasFinales(notasFinalesDelAlumno); // Almacena las notas finales en el estado
       setSelectedIdBanner(idBanner);
     } catch (error) {
       console.error('Error al obtener notas del alumno:', error);
+      setNotas([]); // En caso de error, asignar un array vacío
+      setNotasFinales(null);
     }
   };
 
   return (
     <div>
-      <h2>Lista de Alumnos</h2>
-      <select onChange={(e) => handleAlumnoSelect(e.target.value)}>
-        <option value="">Seleccionar Alumno</option>
+      <h2>Notas del Estudiante</h2>
+      <label htmlFor="alumnoDropdown">Selecciona un alumno:</label>
+      <select
+        id="alumnoDropdown"
+        value={selectedIdBanner}
+        onChange={(e) => handleAlumnoSelect(e.target.value)}
+      >
+        <option value="">Selecciona un alumno</option>
         {alumnos.map((alumno) => (
           <option key={alumno.idBanner} value={alumno.idBanner}>
-            {alumno.nombre}
+            {alumno.nombre} - {alumno.idBanner}
           </option>
         ))}
       </select>
 
       {selectedIdBanner && (
         <div>
-          <h3>Notas de {selectedIdBanner}</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Progreso</th>
-                <th>Nota</th>
-                <th>Fecha</th>
-              </tr>
-            </thead>
-            <tbody>
-              {notas.map((nota) => (
-                <tr key={nota._id}>
-                  <td>{nota.progreso}</td>
-                  <td>{nota.nota}</td>
-                  <td>{new Date(nota.fecha).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <h3>Notas de {alumnos.find((alumno) => alumno.idBanner === selectedIdBanner)?.nombre}</h3>
+                    {notasFinales && (
+            <div>
+              <h3>Notas Finales</h3>
+              <p>Nota Final P1: {parseFloat((notasFinales.notaFinalP1)/ 0.25).toFixed(2)}</p>
+              <p>Nota Final P2: {parseFloat((notasFinales.notaFinalP2)/0.35).toFixed(2)}</p>
+              <p>Nota Necesitada: {notasFinales.notaNecesitada}</p>
+            </div>
+          )}
         </div>
       )}
     </div>

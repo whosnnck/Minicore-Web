@@ -33,9 +33,10 @@ const NotaForm = () => {
       }
   
       try {
-        await axios.post('/nota/agregarNota', { nota, progreso, idBanner: selectedAlumno, fecha });
+        await axios.post('/nota/agregarnota', { nota, progreso, idBanner: selectedAlumno, fecha });
   
-        setError(''); 
+        setError('');
+        window.location.reload();
       } catch (error) {
         console.error('Error al agregar nota:', error);
         setError('Error al agregar la nota. Por favor, verifica los datos e intenta de nuevo.');
